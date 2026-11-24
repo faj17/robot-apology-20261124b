@@ -1,13 +1,18 @@
 """Two-line robot apology for the make.fun bounty.
 
-Line one owns one specific, concrete mistake: running the vacuum in
-the nursery at 3 a.m. because the schedule said so, without checking
-whether anyone was asleep in the room. Line two names the lesson and
-the changed behaviour: check who is in the room before checking what
-the room needs. The script validates the entry and writes it to
-/output/entry.txt.
+Why this mistake, against the rubric: of the five candidates drafted
+(see BUILD_LOG.md), the 3 a.m. vacuum was picked because it is the most
+robot-like slip — literal schedule-following ('nursery, Tuesday') with
+no check for who is actually in the room — and the most human-scale
+consequence, a sleeping baby woken at 3 a.m. The lesson names the real
+failure (never asking who was asleep) and inverts the machine's
+priority: check who is in the room before checking what the room needs.
+Line one owns one specific, concrete mistake; line two names the lesson
+and the changed behaviour. The script validates the entry and writes it
+to /output/entry.txt.
 """
 
+import re
 from pathlib import Path
 
 # The apology itself: exactly two lines, 256 characters in total.
@@ -38,6 +43,12 @@ def validate(text: str) -> str:
         )
     if not all(line.endswith(".") for line in lines):
         raise ValueError("each line must be a single sentence ending with '.'")
+    # A second sentence hides behind a mid-line sentence boundary, e.g.
+    # "I did X. Then I did Y." — a period followed by a space and a capital
+    # letter. Abbreviations such as "3 a.m." do not trigger this: the word
+    # after the period is lowercase, so it is not a new sentence.
+    if any(re.search(r"[.?!]\s+[A-Z]", line) for line in lines):
+        raise ValueError("each line must be a single sentence, not two")
     return text
 
 
